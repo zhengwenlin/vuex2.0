@@ -1,6 +1,13 @@
 import ModuleCollection from "./module/module-collection"
 import { forEachValue } from "./util"
 
+function getSate(store, path){
+  // 根据路径获取状态
+  return path.slice(0,-1).reduce((rootState, current) => {
+    return rootState[current]
+  }, store.state) // store.state是通过类的属性访问器获取属性，是最新的状态
+}
+
 // 安装模块
 /**
   module = {
@@ -8,12 +15,39 @@ import { forEachValue } from "./util"
   }
  */
 function installModule(store, path, module, rootState){
-
+    // 处理state
+    if(path.length > 0){
+        // 子模块，将子模块的state都合并到根模块状态中
+        path.slice(0, -1).reduce((rootState, current) => {
+            return rootState[current]
+        }, rootState)
+    }
+    // 处理mutations
     if(module.mutations){ // commit(type, payload) -> store.mutations[type].forEach(fn => fn(payload))
+        // 循环当前模块的mutations对象
         forEachValue(module.mutations, (fn, key) => {
             store.mutations[key] = (payload) => {
-                fn.call(store, payload)
+                // fn是用户定义的mutations，两个参数(state, paylaod)
+                fn.call(store, getSate(store, path), payload)
+            } 
+        })
+    }
+    // 处理anctions
+    if(module.actions){
+        forEachValue(module.actions, (fn, key) => {
+            store.actions[key] = (payload) => { // dispatch(type, payload)
+                fn.call(store, store, payload)
             }
+        })
+    }
+
+    if(module.getters) {
+
+    }
+    // 递归安装模块
+    if(module._children){
+        forEachValue(module._children, (child, key) => {
+            installModule(store, path.concat(key), child, rootState)
         })
     }
 }

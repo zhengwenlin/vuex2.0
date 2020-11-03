@@ -7,6 +7,11 @@ export default new Vuex.Store({
     name: 'zf',
     age: 11
   },
+  getters:{
+    myAge(state){
+      return state.age
+    }
+  },
   mutations: {
     changeAge(state, payload) {
       state.age += payload
@@ -25,6 +30,11 @@ export default new Vuex.Store({
       state: {
         aname: 'aname',
         age: 100
+      },
+      getters:{
+        myname(state){
+          return state.aname
+        }
       },
       mutations: {
         changeAge(state, payload) {

@@ -7,7 +7,14 @@ export default class ModuleCollection {
         this.register([], options)
     }
 
-
+    // 获取命名空间 [a, c, d]
+    getNamespace(path) {
+        let module = this.root
+        return path.reduce((prev, current) => {
+            module = module.getChild(current)
+            return prev += (module._raw.namespaced ? current + '/' : '')
+        }, '')
+    }
     register(path, rootModule) {
         // 树有树根
         // let newModule = {
@@ -17,25 +24,25 @@ export default class ModuleCollection {
         // }
         let newModule = new Module(rootModule)
 
-        if(path.length === 0){
+        if (path.length === 0) {
             // 根
             this.root = newModule
-        }else{
+        } else {
             // 子
             // [a] [a, c] [b]
             // 找到父亲，放到父亲的_children中去即可
-            let parent = path.slice(0,-1).reduce((prev, current, index,arr) => {
+            let parent = path.slice(0, -1).reduce((prev, current, index, arr) => {
                 // return prev._children[current]
                 return prev.getChild(current)
             }, this.root)
             // parent._children[path[path.length - 1]] = newModule
 
-            parent.addChild(path[path.length - 1],newModule)
+            parent.addChild(path[path.length - 1], newModule)
 
         }
 
         // 如果有模块
-        if(rootModule.modules){
+        if (rootModule.modules) {
             forEachValue(rootModule.modules, (module, key) => {
                 this.register(path.concat(key), module)
             })
